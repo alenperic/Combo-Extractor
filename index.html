@@ -3,54 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Username and Password Extractor</title>
+    <title>Combo Extractor Tool</title>
+    <meta name="description" content="Extract emails and passwords from your text securely and locally without any server interaction.">
+    <meta name="keywords" content="email extractor, email parser, password extractor, cybersecurity, online tool, text processing, security, web application">
+    <meta name="author" content="alenperic">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #2b2f3a;
-            color: white;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
-            overflow: auto;
-        }
-        #domainInputWrapper {
-            margin: 20px 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            width: 100%;
+            flex-direction: column;
+            background-color: #2b2f3a;
+            color: white;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
         }
-        input[type="text"], textarea {
-            padding: 10px;
-            font-size: 16px;
-            background-color: #1e2129;
-            color: #ddd;
-            border: 1px solid #555;
-            border-radius: 4px;
+        .header {
+            position: absolute;
+            top: 10px;
+            left: 10px;
         }
-        input[type="text"] {
-            width: 20%;
+        .header img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            vertical-align: middle;
             margin-right: 10px;
         }
-        #dbInput, #output {
-            width: calc(40% - 10px);
+        .header a {
+            color: white;
+            text-decoration: none;
+            vertical-align: middle;
+        }
+        #title {
+            margin-top: 60px;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        #wrapper {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+        }
+        textarea {
+            width: 48%;
             height: 200px;
-            resize: vertical;
-            margin: 0 5px;
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+            background-color: #1e2129;
+            color: #ddd;
+            border: none;
+            border-radius: 4px;
+            overflow: auto;
         }
         .copy-button {
-            padding: 10px 20px;
+            padding: 10px;
+            margin-top: 10px;
             background-color: #4caf50;
             border: none;
             color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
             font-size: 16px;
             cursor: pointer;
             border-radius: 4px;
+        }
+        .description {
             margin-top: 20px;
+            text-align: center;
+            width: 80%;
+            font-size: 0.9em;
         }
         .switch {
             position: relative;
@@ -94,17 +120,37 @@
         input:checked + .slider:before {
             transform: translateX(26px);
         }
-        #wrapper {
+        #domainInputWrapper {
+            margin: 20px 0;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             width: 100%;
+        }
+        input[type="text"] {
+            width: 20%;
+            padding: 10px;
+            font-size: 16px;
+            margin: 0 5px;
+            background-color: #1e2129;
+            color: #ddd;
+            border: 1px solid #555;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
+    <div class="header">
+      <a href="https://github.com/alenperic" target="_blank">
+        <img src="https://avatars.githubusercontent.com/u/20021065?v=4" alt="GitHub Profile Icon" />
+        alenperic
+      </a>
+    </div>
+
+    <div id="title">Combo Extractor Tool</div>
+
     <div id="domainInputWrapper">
-        <input type="text" id="domainInput" placeholder="Enter domain (domain.com)">
+        <input type="text" id="domainInput" placeholder="Enter domain (domain.com)" />
         <div class="toggle">
             <label class="switch">
                 <input type="checkbox" id="toggleFormat">
@@ -122,7 +168,8 @@
     <button class="copy-button" id="copyButton">Copy to Clipboard</button>
 
     <script>
-        document.getElementById('domainInput').addEventListener('input', filterEntries);
+        let debounceTimer;
+        document.getElementById('domainInput').addEventListener('input', () => debounce(filterEntries, 500));
         document.getElementById('toggleFormat').addEventListener('change', filterEntries);
 
         function filterEntries() {
@@ -137,13 +184,18 @@
                     if (showPasswords) {
                         result += `${line}\n`;
                     } else {
-                        const [email, ] = line.split(':');
+                        const [email,] = line.split(':');
                         result += `${email}\n`;
                     }
                 }
             }
 
             document.getElementById('output').value = result;
+        }
+
+        function debounce(func, delay) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(func, delay);
         }
 
         document.getElementById('copyButton').addEventListener('click', function() {
