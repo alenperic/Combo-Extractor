@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Username and Password Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2b2f3a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: auto;
+        }
+        #domainInputWrapper {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        input[type="text"], textarea {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #1e2129;
+            color: #ddd;
+            border: 1px solid #555;
+            border-radius: 4px;
+        }
+        input[type="text"] {
+            width: 20%;
+            margin-right: 10px;
+        }
+        #dbInput, #output {
+            width: calc(40% - 10px);
+            height: 200px;
+            resize: vertical;
+            margin: 0 5px;
+        }
+        .copy-button {
+            padding: 10px 20px;
+            background-color: #4caf50;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-left: 10px;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        #wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="domainInputWrapper">
+        <input type="text" id="domainInput" placeholder="Enter domain (domain.com)">
+        <div class="toggle">
+            <label class="switch">
+                <input type="checkbox" id="toggleFormat">
+                <span class="slider"></span>
+            </label>
+            <span>Show Passwords</span>
+        </div>
+    </div>
+
+    <div id="wrapper">
+        <textarea id="dbInput" placeholder="Paste database here..."></textarea>
+        <textarea id="output" placeholder="Filtered entries will appear here..." readonly></textarea>
+    </div>
+
+    <button class="copy-button" id="copyButton">Copy to Clipboard</button>
+
+    <script>
+        if (window.Worker) {
+            const worker = new Worker('worker.js');
+            let debounceTimer;
+
+            worker.addEventListener('message', function(e) {
+                document.getElementById('output').value = e.data;
+            });
+
+            function filterEntries() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    const dbText = document.getElementById('dbInput').value;
+                    const domain = document.getElementById('domainInput').value.trim();
+                    const showPasswords = document.getElementById('toggleFormat').checked;
+                    
+                    worker.postMessage({ dbText, domain, showPasswords });
+                }, 500); // Adjust debounce time as needed
+            }
+
+            document.getElementById('domainInput').addEventListener('input', filterEntries);
+            document.getElementById('toggleFormat').addEventListener('change', filterEntries);
+            document.getElementById('copyButton').addEventListener('click', function() {
+                const outputText = document.getElementById('output');
+                outputText.select();
+                navigator.clipboard.writeText(outputText.value);
+            });
+        } else {
+            console.log('Your browser does not support Web Workers.');
+        }
+    </script>
+</body>
+</html>
