@@ -57,7 +57,11 @@
             display: inline-block;
             width: 60px;
             height: 34px;
-            margin-left: 10px;
+        }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
         }
         .slider {
             position: absolute;
@@ -118,35 +122,35 @@
     <button class="copy-button" id="copyButton">Copy to Clipboard</button>
 
     <script>
-        if (window.Worker) {
-            const worker = new Worker('worker.js');
-            let debounceTimer;
+        document.getElementById('domainInput').addEventListener('input', filterEntries);
+        document.getElementById('toggleFormat').addEventListener('change', filterEntries);
 
-            worker.addEventListener('message', function(e) {
-                document.getElementById('output').value = e.data;
-            });
+        function filterEntries() {
+            const dbText = document.getElementById('dbInput').value;
+            const domain = document.getElementById('domainInput').value.trim();
+            const showPasswords = document.getElementById('toggleFormat').checked;
+            const lines = dbText.split('\n');
+            let result = '';
 
-            function filterEntries() {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => {
-                    const dbText = document.getElementById('dbInput').value;
-                    const domain = document.getElementById('domainInput').value.trim();
-                    const showPasswords = document.getElementById('toggleFormat').checked;
-                    
-                    worker.postMessage({ dbText, domain, showPasswords });
-                }, 500); // Adjust debounce time as needed
+            for (const line of lines) {
+                if (line.includes(domain)) {
+                    if (showPasswords) {
+                        result += `${line}\n`;
+                    } else {
+                        const [email, ] = line.split(':');
+                        result += `${email}\n`;
+                    }
+                }
             }
 
-            document.getElementById('domainInput').addEventListener('input', filterEntries);
-            document.getElementById('toggleFormat').addEventListener('change', filterEntries);
-            document.getElementById('copyButton').addEventListener('click', function() {
-                const outputText = document.getElementById('output');
-                outputText.select();
-                navigator.clipboard.writeText(outputText.value);
-            });
-        } else {
-            console.log('Your browser does not support Web Workers.');
+            document.getElementById('output').value = result;
         }
+
+        document.getElementById('copyButton').addEventListener('click', function() {
+            const outputText = document.getElementById('output');
+            outputText.select();
+            navigator.clipboard.writeText(outputText.value);
+        });
     </script>
 </body>
 </html>
